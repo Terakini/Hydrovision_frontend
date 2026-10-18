@@ -21,7 +21,15 @@ export function VillageUrgencyList({
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [riverZone, setRiverZone] = useState<string>("All");
 
-  const tierFilterOptions = ["All", "Evacuate", "Danger", "Warning", "Watch", "Safe"];
+  const tierFilterOptions = [
+    "All",
+    "Evacuate",
+    "Danger",
+    "Warning",
+    "Watch",
+    "Safe",
+    "Unknown",
+  ];
 
   // Filter and sort villages
   const filteredVillages = villages
@@ -70,7 +78,7 @@ const tierStripeColors: Record<RiskTier, string> = {
           <h2 className="text-sm font-bold text-foreground">
   District Village Index
   <span className="ml-2 text-[10px] font-semibold text-amber-600">
-    DEMO DATA
+    BACKEND RECORDS
   </span>
 </h2>
             <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold">
@@ -161,12 +169,16 @@ const tierStripeColors: Record<RiskTier, string> = {
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                    <span>Taluka: {village.taluka}</span>
+                    <span>District: {village.taluka}</span>
                     <span>•</span>
-                   <span>
-  Demo probability:{" "}
-  <strong className="text-foreground">{village.probability}%</strong>
-</span>
+                    <span>
+                      Risk probability:{" "}
+                      <strong className="text-foreground">
+                        {village.tier === "Unknown"
+                          ? "Unavailable"
+                          : `${village.probability}%`}
+                      </strong>
+                    </span>
                   </div>
                 </div>
 
@@ -175,13 +187,19 @@ const tierStripeColors: Record<RiskTier, string> = {
                   <div className="text-right">
                     <TierBadge tier={village.tier} size="sm" />
                     <div className="text-[11px] mt-0.5 text-muted-foreground font-mono">
-                      {village.hours_to_impact !== null ? (
+                      
+                      {village.tier === "Unknown" ? (
+                        <span className="block max-w-[110px] text-[10px] leading-tight whitespace-normal">
+                          Impact estimate unavailable
+                        </span>
+                      ) : village.hours_to_impact != null ? (
                         <span className="font-semibold text-foreground">
-                         {village.hours_to_impact}h demo estimate
+                          {village.hours_to_impact}h demo estimate
                         </span>
                       ) : (
-                        <span>—</span>
+                        <span>Unavailable</span>
                       )}
+
                     </div>
                   </div>
 
@@ -204,7 +222,7 @@ const tierStripeColors: Record<RiskTier, string> = {
       {/* List Footer */}
       <div className="p-2.5 border-t border-border bg-muted/20 text-[11px] text-muted-foreground flex items-center justify-between px-4">
         <span>Urgency-sorted: Evacuate $\rightarrow$ Safe</span>
-        <span className="font-medium text-foreground">Simulated Dataset</span>
+        <span className="font-medium text-foreground">Risk assessment unavailable</span>
       </div>
     </div>
   );

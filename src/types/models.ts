@@ -2,6 +2,7 @@ export type RiskTier = "Safe" | "Watch" | "Warning" | "Danger" | "Evacuate" | "U
 
 export interface Village {
   id: string;
+  code?: string;
   name: string;
   taluka: string;
   river_zone: string;

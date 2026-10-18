@@ -9,6 +9,7 @@ import {
   MOCK_ACTIVITY_FEED,
 } from "@/lib/mock/commandCenterData";
 import { Village } from "@/types/models";
+import { fetchBackendVillages } from "@/lib/api/villages";
 import { KpiCard } from "@/components/hv/KpiCard";
 import { SimulationChip } from "@/components/hv/SimulationChip";
 import { InteractiveMapPanel } from "@/components/officer/InteractiveMapPanel";
@@ -23,6 +24,8 @@ import {
   UsersIcon,
   AlertTriangleIcon,
 } from "@/components/hv/Icons";
+
+import { BackendVillageList } from "@/components/officer/BackendVillageList";
 
 type DashboardSummary = {
   overview: {
@@ -90,6 +93,10 @@ const [villageStatus, setVillageStatus] = useState<any>(null);
 const [villageStatusLoading, setVillageStatusLoading] = useState(true);
 const [villageStatusError, setVillageStatusError] = useState<string | null>(null);
 
+const [liveVillages, setLiveVillages] = useState<Village[]>([]);
+const [villagesLoading, setVillagesLoading] = useState(true);
+const [villagesError, setVillagesError] = useState<string | null>(null);
+
 useEffect(() => {
   let cancelled = false;
 
@@ -131,24 +138,86 @@ useEffect(() => {
   return () => {
     cancelled = true;
   };
-},
-
-[]);
+},[]);
 
 useEffect(() => {
   let cancelled = false;
+
+  async function loadVillages() {
+    try {
+      setVillagesLoading(true);
+      setVillagesError(null);
+
+      const villages = await fetchBackendVillages();
+
+      if (!cancelled) {
+        setLiveVillages(villages);
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setVillagesError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load villages.",
+        );
+      }
+    } finally {
+      if (!cancelled) {
+        setVillagesLoading(false);
+      }
+    }
+  }
+
+  void loadVillages();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+
+
+useEffect(() => {
+  let cancelled = false;
+
+  const villageCode: string | undefined =
+  selectedVillage?.code ?? liveVillages[0]?.code;
+
+  if (typeof villageCode !== "string" || villageCode.trim() === "") {
+    if (!villagesLoading) {
+      setVillageStatus(null);
+      setVillageStatusError(
+        "No backend village code is available."
+      );
+      setVillageStatusLoading(false);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }
 
   async function loadVillageStatus() {
     try {
       setVillageStatusLoading(true);
       setVillageStatusError(null);
 
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ??
+        "https://hydrovision-backend.onrender.com";
+
       const response = await fetch(
-        "https://hydrovision-backend.onrender.com/api/v1/villages/HV-TEST-001/status"
+        `${apiBaseUrl}/api/v1/villages/${encodeURIComponent(villageCode as string)}/status`,
+        {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        }
       );
 
       if (!response.ok) {
-        throw new Error(`Village status request failed (${response.status})`);
+        throw new Error(
+          `Village status request failed (${response.status})`
+        );
       }
 
       const result = await response.json();
@@ -158,6 +227,7 @@ useEffect(() => {
       }
     } catch (error) {
       if (!cancelled) {
+        setVillageStatus(null);
         setVillageStatusError(
           error instanceof Error
             ? error.message
@@ -171,12 +241,17 @@ useEffect(() => {
     }
   }
 
-  loadVillageStatus();
+  void loadVillageStatus();
 
   return () => {
     cancelled = true;
   };
-}, []);
+}, [
+  selectedVillage?.code,
+  liveVillages,
+  villagesLoading,
+]);
+
 
 
   return (
@@ -379,7 +454,7 @@ useEffect(() => {
                 Emergency Shelters
               </span>
               <span className="text-sm font-bold text-foreground">
-                {MOCK_KPIS.available_shelters_count} Active Shelters Open Across District
+                Shelter data not connected
               </span>
             </div>
           </div>
@@ -401,7 +476,7 @@ useEffect(() => {
                 Volunteer Field Tasks
               </span>
               <span className="text-sm font-bold text-foreground">
-                {MOCK_KPIS.pending_tasks_count} Rescue &amp; Supplies Tasks Assigned
+                Task data not connected
               </span>
             </div>
           </div>
@@ -434,6 +509,7 @@ useEffect(() => {
     <p className="text-sm text-muted-foreground">
       Loading village status from backend...
     </p>
+    
   ) : villageStatusError ? (
     <p className="text-sm text-red-400">
       Unable to load status: {villageStatusError}
@@ -442,17 +518,126 @@ useEffect(() => {
     <>
       <div className="flex flex-wrap items-center gap-3 mb-3">
         <span className="rounded-full border border-gray-500/30 bg-gray-500/10 px-3 py-1 text-sm font-semibold text-gray-400">
-          Risk: {villageStatus.risk_level ?? "unknown"}
+        Risk:{" "}
+        {dashboardLoading
+          ? "Loading..."
+          : dashboardError
+            ? "Unavailable"
+            : dashboard?.risk_summary
+              ? dashboard.risk_summary.high > 0
+                ? "High (preliminary)"
+                : dashboard.risk_summary.moderate > 0
+                  ? "Moderate (preliminary)"
+                  : dashboard.risk_summary.low > 0
+                    ? "Low (preliminary)"
+                    : "Unknown"
+              : "Unknown"}
         </span>
+
         <span className="text-sm text-muted-foreground">
-          Assessment: {villageStatus.assessment_status ?? "unknown"}
+          Assessment:{" "}
+          {villageStatus.assessment_status ??
+            "Pending validated risk assessment"}
         </span>
       </div>
+      
 
       <p className="text-sm text-muted-foreground">
         {villageStatus.safety_note ??
           "Preliminary development assessment. Not an official flood warning."}
       </p>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="rounded-lg border border-border p-3">
+        <p className="text-xs text-muted-foreground">
+          Latest River Discharge
+        </p>
+        <p className="mt-1 text-lg font-bold text-foreground">
+          {villageStatus.latest_gauge_reading?.discharge_m3s != null
+            ? `${villageStatus.latest_gauge_reading.discharge_m3s} m³/s`
+            : "Unavailable"}
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-border p-3">
+        <p className="text-xs text-muted-foreground">
+          Data Source
+        </p>
+        <p className="mt-1 text-sm font-bold text-foreground">
+          {villageStatus.latest_gauge_reading?.source ?? "Unavailable"}
+        </p>
+      </div>
+
+      <div className="rounded-lg border border-border p-3">
+        <p className="text-xs text-muted-foreground">
+          Reading Quality
+        </p>
+        <p className="mt-1 text-sm font-bold text-foreground">
+          {villageStatus.latest_gauge_reading?.quality ?? "Unavailable"}
+        </p>
+      </div>
+    </div>
+
+    <p className="mt-3 text-xs text-muted-foreground">
+      Modelled river-discharge data, not a direct physical gauge measurement.
+      Risk assessment is preliminary and is not an official flood warning.
+    </p>
+
+    
+    <div className="mt-4 rounded-xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-base font-semibold text-foreground">
+            {villageStatus.village?.name ?? "Unknown Village"}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Code: {villageStatus.village?.code ?? "Unavailable"}
+          </p>
+        </div>
+        <span className="rounded-full border border-border px-3 py-1 text-xs font-medium">
+          Backend Record
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <p className="text-xs text-muted-foreground">District</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {villageStatus.village?.district ?? "Unavailable"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">State</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {villageStatus.village?.state ?? "Unavailable"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Physical Gauge Level</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {villageStatus.latest_gauge_reading?.level_m != null
+              ? `${villageStatus.latest_gauge_reading.level_m} m`
+              : "Unavailable"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Latest Reading Time</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {villageStatus.latest_gauge_reading?.observed_at
+              ? new Date(
+                  villageStatus.latest_gauge_reading.observed_at
+                ).toLocaleString()
+              : "Unavailable"}
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-4 text-xs text-muted-foreground">
+        This is the village record returned by the backend. The available
+        discharge value is modelled data, not a direct physical gauge reading.
+        No verified flood probability or official warning is available here.
+      </p>
+    </div>
+
 
       {Array.isArray(villageStatus.warnings) &&
         villageStatus.warnings.length > 0 && (
@@ -476,29 +661,54 @@ useEffect(() => {
     </p>
   )}
 </section>
+      
+      {/* Main Monitoring Grid: backend villages + illustrative flood zones */}
+      <section className="space-y-3">
+        {villagesLoading && (
+          <p className="text-sm text-muted-foreground">
+            Loading village records from the backend...
+          </p>
+        )}
 
+        {villagesError && (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3">
+            <p className="text-sm text-red-500">
+              Unable to load live villages: {villagesError}
+            </p>
+          </div>
+        )}
 
-      {/* Main Monitoring Grid: Interactive Map (8 cols) + Village Urgency List (4 cols) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left: Map Monitoring Panel */}
-        <div className="lg:col-span-8">
-          <InteractiveMapPanel
-            villages={MOCK_VILLAGES}
-            floodZones={MOCK_FLOOD_ZONES}
-            selectedVillageId={selectedVillage?.id || null}
-            onSelectVillage={(v) => setSelectedVillage(v)}
-          />
-        </div>
+        {!villagesLoading && !villagesError && (
+          <p className="text-xs text-muted-foreground">
+            Showing {liveVillages.length} village record(s) from the backend.
+            Risk tiers are unassessed. Flood polygons remain simulated demo data.
+          </p>
+        )}
 
-        {/* Right: Village Urgency Index */}
-        <div className="lg:col-span-4">
-          <VillageUrgencyList
-            villages={MOCK_VILLAGES}
-            selectedVillageId={selectedVillage?.id || null}
-            onSelectVillage={(v) => setSelectedVillage(v)}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <div className="lg:col-span-8">
+            <InteractiveMapPanel
+              villages={liveVillages}
+              floodZones={MOCK_FLOOD_ZONES}
+              selectedVillageId={selectedVillage?.id ?? null}
+              onSelectVillage={setSelectedVillage}
+            />
+          </div>
+
+          <div className="lg:col-span-4">
+            <VillageUrgencyList
+              villages={liveVillages}
+              selectedVillageId={selectedVillage?.id ?? null}
+              onSelectVillage={setSelectedVillage}
+            />
+          </div>
         </div>
       </section>
+
+
+      <div className="mt-5">
+        <BackendVillageList />
+      </div>
 
       
 {/* Backend Data Source Health */}

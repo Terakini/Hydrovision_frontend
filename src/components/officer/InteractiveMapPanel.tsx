@@ -55,8 +55,8 @@ const tierMarkerColors: Record<RiskTier, string> = {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/30 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <LayersIcon size={16} className="text-primary" />
-          <h2 className="text-sm font-bold text-foreground">Flood Inundation &amp; Village Risk Map</h2>
-          <SimulationChip size="sm" label="SYNTHETIC OVERLAY" />
+          <h2 className="text-sm font-bold text-foreground">Illustrative Flood Map (Demo)</h2>
+          <SimulationChip size="sm" label="SIMULATED — NOT LIVE" />
         </div>
 
         {/* Layer Toggles */}
@@ -308,7 +308,7 @@ const tierMarkerColors: Record<RiskTier, string> = {
             <span className="font-bold text-[11px] text-foreground uppercase tracking-wider">
               Map Legend
             </span>
-            <span className="text-[10px] text-muted-foreground">Krishna Basin</span>
+            <span className="text-[10px] text-muted-foreground">Not geographically accurate</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
             <div className="flex items-center gap-1.5">
@@ -335,7 +335,7 @@ const tierMarkerColors: Record<RiskTier, string> = {
           <div className="flex items-center gap-3 pt-0.5 text-[10px] text-muted-foreground">
             <div className="flex items-center gap-1">
               <span className="h-1.5 w-5 rounded bg-[#0E9AA7]" />
-              <span>River Channel</span>
+              <span>Illustrative River</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
@@ -381,11 +381,20 @@ const tierMarkerColors: Record<RiskTier, string> = {
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs py-2 border-y border-border/70">
               <div>
                 <span className="text-muted-foreground block text-[10px] uppercase">Probability</span>
-                <span className="font-bold">{selectedVillage.probability}%</span>
+                
+                <span className="font-bold">
+                  {selectedVillage.tier === "Unknown"
+                    ? "Unavailable"
+                    : `${selectedVillage.probability}%`}
+                </span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-[10px] uppercase">River Gauge</span>
-                <span className="font-bold">{selectedVillage.gauge_level_m}m</span>
+                <span className="font-bold">
+                  {selectedVillage.tier === "Unknown"
+                    ? "Unavailable"
+                    : `${selectedVillage.gauge_level_m}m`}
+                </span>
               </div>
             </div>
 
