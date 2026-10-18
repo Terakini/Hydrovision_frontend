@@ -216,7 +216,7 @@ export async function GET() {
         mae: round(mae),
         rmse: round(Math.sqrt(mse)),
         r2: r2 === null ? null : round(r2),
-        unit: "m",
+        unit: "m (source units require verification)",
       },
       baseline: {
         predictedPeakLevel: round(trainingMean),

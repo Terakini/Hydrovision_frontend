@@ -2,12 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  MOCK_KPIS,
-  MOCK_VILLAGES,
-  MOCK_FLOOD_ZONES,
-  MOCK_ACTIVITY_FEED,
-} from "@/lib/mock/commandCenterData";
 import { Village } from "@/types/models";
 import { fetchBackendVillages } from "@/lib/api/villages";
 import { KpiCard } from "@/components/hv/KpiCard";
@@ -82,6 +76,31 @@ type DashboardApiResponse = {
   data: DashboardSummary;
 };
 
+
+type VillageStatus = {
+  assessment_status?: string | null;
+  safety_note?: string | null;
+  latest_gauge_reading?: {
+    discharge_m3s?: number | null;
+    level_m?: number | null;
+    source?: string | null;
+    quality?: string | null;
+    observed_at?: string | null;
+  } | null;
+  latest_rain_reading?: {
+    rain_mm?: number | null;
+    source?: string | null;
+  } | null;
+  village?: {
+    name?: string | null;
+    code?: string | null;
+    district?: string | null;
+    state?: string | null;
+  } | null;
+  warnings?: string[];
+};
+
+
 export default function OfficerCommandPage() {
   const [selectedVillage, setSelectedVillage] = useState<Village | null>(null);
 
@@ -89,7 +108,8 @@ export default function OfficerCommandPage() {
 const [dashboardLoading, setDashboardLoading] = useState(true);
 const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-const [villageStatus, setVillageStatus] = useState<any>(null);
+const [villageStatus, setVillageStatus] =
+  useState<VillageStatus | null>(null);
 const [villageStatusLoading, setVillageStatusLoading] = useState(true);
 const [villageStatusError, setVillageStatusError] = useState<string | null>(null);
 
@@ -183,21 +203,18 @@ useEffect(() => {
   const villageCode: string | undefined =
   selectedVillage?.code ?? liveVillages[0]?.code;
 
-  if (typeof villageCode !== "string" || villageCode.trim() === "") {
-    if (!villagesLoading) {
-      setVillageStatus(null);
-      setVillageStatusError(
-        "No backend village code is available."
-      );
-      setVillageStatusLoading(false);
+  async function loadVillageStatus() {
+    if (!villageCode || villageCode.trim() === "") {
+      if (!villagesLoading && !cancelled) {
+        setVillageStatus(null);
+        setVillageStatusError(
+          "No backend village code is available."
+        );
+        setVillageStatusLoading(false);
+      }
+      return;
     }
 
-    return () => {
-      cancelled = true;
-    };
-  }
-
-  async function loadVillageStatus() {
     try {
       setVillageStatusLoading(true);
       setVillageStatusError(null);
@@ -207,7 +224,7 @@ useEffect(() => {
         "https://hydrovision-backend.onrender.com";
 
       const response = await fetch(
-        `${apiBaseUrl}/api/v1/villages/${encodeURIComponent(villageCode as string)}/status`,
+        `${apiBaseUrl}/api/v1/villages/${encodeURIComponent(villageCode)}/status`,
         {
           headers: { Accept: "application/json" },
           cache: "no-store",
@@ -220,7 +237,8 @@ useEffect(() => {
         );
       }
 
-      const result = await response.json();
+      const result: { data: VillageStatus } =
+        await response.json();
 
       if (!cancelled) {
         setVillageStatus(result.data);
@@ -235,7 +253,7 @@ useEffect(() => {
         );
       }
     } finally {
-      if (!cancelled) {
+      if (!cancelled && villageCode) {
         setVillageStatusLoading(false);
       }
     }
@@ -251,8 +269,6 @@ useEffect(() => {
   liveVillages,
   villagesLoading,
 ]);
-
-
 
   return (
     <div className="space-y-6">
@@ -707,7 +723,7 @@ useEffect(() => {
           <div className="lg:col-span-8">
             <InteractiveMapPanel
               villages={liveVillages}
-              floodZones={MOCK_FLOOD_ZONES}
+              floodZones={[]}
               selectedVillageId={selectedVillage?.id ?? null}
               onSelectVillage={setSelectedVillage}
             />
@@ -883,7 +899,7 @@ useEffect(() => {
         </div>
 
         <div className="lg:col-span-5">
-          <LiveEventFeed events={MOCK_ACTIVITY_FEED} />
+          <LiveEventFeed events={[]} />
         </div>
       </section>
     </div>

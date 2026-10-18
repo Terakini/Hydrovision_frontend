@@ -291,9 +291,17 @@ export default function ModelHealthPage() {
     }
   }, []);
 
-  useEffect(() => {
+  
+useEffect(() => {
+  const timer = window.setTimeout(() => {
     void loadData();
-  }, [loadData]);
+  }, 0);
+
+  return () => {
+    window.clearTimeout(timer);
+  };
+}, [loadData]);
+
 
   const missing = {
     ...emptyMissingValues,
