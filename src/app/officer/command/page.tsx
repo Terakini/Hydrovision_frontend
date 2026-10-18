@@ -518,7 +518,7 @@ useEffect(() => {
     <>
       <div className="flex flex-wrap items-center gap-3 mb-3">
         <span className="rounded-full border border-gray-500/30 bg-gray-500/10 px-3 py-1 text-sm font-semibold text-gray-400">
-        Risk:{" "}
+        Overall dashboard risk:{" "}
         {dashboardLoading
           ? "Loading..."
           : dashboardError
@@ -546,36 +546,54 @@ useEffect(() => {
         {villageStatus.safety_note ??
           "Preliminary development assessment. Not an official flood warning."}
       </p>
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <div className="rounded-lg border border-border p-3">
-        <p className="text-xs text-muted-foreground">
-          Latest River Discharge
-        </p>
-        <p className="mt-1 text-lg font-bold text-foreground">
-          {villageStatus.latest_gauge_reading?.discharge_m3s != null
-            ? `${villageStatus.latest_gauge_reading.discharge_m3s} m³/s`
-            : "Unavailable"}
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-border p-3">
-        <p className="text-xs text-muted-foreground">
-          Data Source
-        </p>
-        <p className="mt-1 text-sm font-bold text-foreground">
-          {villageStatus.latest_gauge_reading?.source ?? "Unavailable"}
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-border p-3">
-        <p className="text-xs text-muted-foreground">
-          Reading Quality
-        </p>
-        <p className="mt-1 text-sm font-bold text-foreground">
-          {villageStatus.latest_gauge_reading?.quality ?? "Unavailable"}
-        </p>
-      </div>
+    
+  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="rounded-lg border border-border p-3">
+      <p className="text-xs text-muted-foreground">
+        Modelled River Discharge
+      </p>
+      <p className="mt-1 text-lg font-bold text-foreground">
+        {villageStatus.latest_gauge_reading?.discharge_m3s != null
+          ? `${villageStatus.latest_gauge_reading.discharge_m3s} m³/s`
+          : "Unavailable"}
+      </p>
     </div>
+
+    <div className="rounded-lg border border-border p-3">
+      <p className="text-xs text-muted-foreground">
+        Discharge Data Source
+      </p>
+      <p className="mt-1 text-sm font-bold text-foreground">
+        {villageStatus.latest_gauge_reading?.source ?? "Unavailable"}
+      </p>
+    </div>
+
+    <div className="rounded-lg border border-border p-3">
+      <p className="text-xs text-muted-foreground">
+        Reading Quality
+      </p>
+      <p className="mt-1 text-sm font-bold text-foreground">
+        {villageStatus.latest_gauge_reading?.quality ?? "Unavailable"}
+      </p>
+    </div>
+
+  <div className="rounded-lg border border-border p-3">
+    <p className="text-xs text-muted-foreground">
+      Latest Rainfall
+    </p>
+    <p className="mt-1 text-lg font-bold text-foreground">
+      {villageStatus.latest_rain_reading?.rain_mm != null
+        ? `${villageStatus.latest_rain_reading.rain_mm} mm`
+        : "Unavailable"}
+    </p>
+    <p className="mt-1 text-xs text-muted-foreground">
+      {villageStatus.latest_rain_reading?.source === "hydrovision-test"
+        ? "Test data"
+        : villageStatus.latest_rain_reading?.source ?? "Source unavailable"}
+    </p>
+  </div>
+</div>
+
 
     <p className="mt-3 text-xs text-muted-foreground">
       Modelled river-discharge data, not a direct physical gauge measurement.
