@@ -55,7 +55,9 @@ const tierMarkerColors: Record<RiskTier, string> = {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/30 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <LayersIcon size={16} className="text-primary" />
-          <h2 className="text-sm font-bold text-foreground">Illustrative Flood Map (Demo)</h2>
+          <h2 className="text-sm font-bold text-foreground">
+            Village Index (Illustrative — Not Geographic)
+          </h2>
           <SimulationChip size="sm" label="SIMULATED — NOT LIVE" />
         </div>
 
@@ -144,21 +146,8 @@ const tierMarkerColors: Record<RiskTier, string> = {
           />
 
           {/* Krishna River Line (chart-3 teal color: #0E9AA7) */}
-          <path
-            d="M 10 10 C 25 20, 20 40, 35 45 C 50 50, 60 65, 75 70 C 85 75, 90 90, 95 95"
-            fill="none"
-            stroke="#0E9AA7"
-            strokeWidth="2.8"
-            strokeLinecap="round"
-          />
+          
           {/* Secondary Tributary */}
-          <path
-            d="M 15 40 Q 30 42 35 45"
-            fill="none"
-            stroke="#4FB07A"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
 
           {/* Simulated Inundation Polygons */}
           {showFloodZones &&

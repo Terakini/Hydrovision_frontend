@@ -13,7 +13,6 @@ import {
   Map,
   ChevronRight,
   X,
-  ExternalLink,
   LibraryBig,
   Info,
 } from "lucide-react";

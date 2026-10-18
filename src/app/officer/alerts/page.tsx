@@ -18,35 +18,7 @@ details: string;
 status: AlertStatus;
 }
 
-const initialAlerts: AlertItem[] = [
-{
-id: "ALT-001",
-title: "Evacuation Alert",
-village: "Kasbe Digraj",
-severity: "Critical",
-details:
-"River level has reportedly crossed the configured warning threshold.",
-status: "Pending Approval",
-},
-{
-id: "ALT-002",
-title: "Flood Preparedness Advisory",
-village: "Shahpur",
-severity: "High",
-details:
-"Prepare response teams and verify local shelter readiness.",
-status: "Pending Approval",
-},
-{
-id: "ALT-003",
-title: "Shelter Readiness Notice",
-village: "District-wide",
-severity: "Medium",
-details:
-"Confirm shelter capacity and essential supply availability.",
-status: "Pending Approval",
-},
-];
+const initialAlerts: AlertItem[] = [];
 
 export default function AlertsPage() {
 const [alerts, setAlerts] = useState(initialAlerts);
@@ -114,8 +86,24 @@ Review drafted emergency alerts and record approval decisions. </p> </div>
     </div>
   </section>
 
-  <section className="space-y-4">
-    {alerts.map((alert) => (
+  
+<section className="space-y-4">
+  {alerts.length === 0 ? (
+    <div className="rounded-xl border border-border bg-card p-8 text-center">
+      <ClipboardCheckIcon
+        size={32}
+        className="mx-auto text-muted-foreground"
+      />
+      <h2 className="mt-3 text-lg font-semibold text-foreground">
+        No alerts to review
+      </h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        There are currently no alert records available.
+        Alerts will appear here when records are created.
+      </p>
+    </div>
+  ) : (
+    alerts.map((alert) => (
       <article
         key={alert.id}
         className="rounded-xl border border-border bg-card p-5 shadow-sm"
@@ -188,8 +176,10 @@ Review drafted emergency alerts and record approval decisions. </p> </div>
           )}
         </div>
       </article>
-    ))}
-  </section>
+    ))
+  )}
+</section>
+
 </main>
 
 );

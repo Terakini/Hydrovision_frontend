@@ -9,7 +9,6 @@ import {
   AlertTriangleIcon,
   ClipboardCheckIcon,
   RadioIcon,
-  ArrowRightIcon,
 } from "@/components/hv/Icons";
 
 interface LiveEventFeedProps {
@@ -71,42 +70,48 @@ export function LiveEventFeed({ events }: LiveEventFeedProps) {
 
       {/* Feed List */}
       <div className="space-y-2.5 overflow-y-auto max-h-[280px] pr-1">
-        {events.map((event) => {
-          const config = getEventConfig(event);
-
-          return (
-            <Link
-              key={event.id}
-              href={event.target_url || "/officer/command"}
-              className={`block rounded-lg border border-border/80 border-l-4 ${config.border} ${config.bg} p-2.5 transition-colors hover:bg-muted/70 group`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  {config.icon}
-                  <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                    {event.title}
-                  </span>
-                </div>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap font-mono">
-                  {event.time_ago}
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-2 pl-5.5">
-                {event.description}
+          {events.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border p-5 text-center">
+              <p className="text-sm font-semibold text-foreground">
+                No connected activity events
               </p>
-              <div className="mt-1 flex items-center justify-end pl-5.5">
-                <span className="text-[10px] text-primary font-semibold flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span>View</span>
-                  <ArrowRightIcon size={10} />
-                </span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                Live incident and source-health events are not connected to this
+                feed yet. No demo incidents are being presented as real events.
+              </p>
+            </div>
+          ) : (
+            events.map((event) => {
+              const config = getEventConfig(event);
+
+              return (
+                <Link
+                  key={event.id}
+                  href={event.target_url || "/officer/command"}
+                  className={`block rounded-lg border border-border/80 border-l-4 ${config.border} ${config.bg} p-2.5 transition-colors hover:bg-muted/70 group`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {config.icon}
+                      <span className="text-xs font-bold text-foreground">
+                        {event.title}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">
+                      {event.time_ago}
+                    </span>
+                  </div>
+                  <p className="mt-1 pl-5.5 text-xs text-muted-foreground">
+                    {event.description}
+                  </p>
+                </Link>
+              );
+            })
+          )}
+        </div>
 
       <div className="mt-3 pt-2 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>Channel: Supabase Realtime</span>
+        <span>Live event integration pending</span>
         <Link href="/officer/alerts" className="text-primary font-semibold hover:underline">
           View full history
         </Link>
